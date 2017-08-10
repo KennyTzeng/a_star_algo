@@ -25,7 +25,7 @@ def get_lowest_fn(list, E):
 		if(fn < lowest_fn):
 			lowest_fn = fn
 			lowest_index = i
-	return i
+	return lowest_index
 
 def main():
 	# load the map
@@ -48,11 +48,11 @@ def main():
 	closedList = []
 	openList.append(S)
 	while(len(openList) != 0):
-		index = get_lowest_fn(openList)
-		n = openList[index]
+		lowest_index = get_lowest_fn(openList)
+		n = openList[lowest_index]
 		if(n.x == E.x and n.y == E.y):
 			return n
-		closedList.append(openList.pop(index))
+		closedList.append(openList.pop(lowest_index))
 
 
 def test():
