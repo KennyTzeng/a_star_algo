@@ -93,31 +93,16 @@ def main():
 		closedList.append(openList.pop(lowest_index))
 		for (nTemp, moveCost) in canMove(n):
 			gnTemp = calculate_gn(n) + moveCost
+			hnTemp = calculate_hn(nTemp)
+			fnTemp = gnTemp + hnTemp
 
 
 def test():
-	# load the map
-	global mapList
-	lineList = []
+	a = Node(None, 1, 1)
+	b = Node(a, 1, 2)
+	c = Node(a, 1, 2)
+	list = [a, b]
 	
-	with open('map.txt', 'r', encoding='utf-8') as map:
-		for i, line in enumerate(map):
-			for j, char in enumerate(line):
-				if(char == '\n'):
-					continue
-				if(char == 'S'):
-					S = Node(None, i, j)
-				if(char == 'E'):
-					E = Node(None, i, j)
-				lineList.append(char)
-			mapList.append(lineList.copy())
-			lineList.clear()
-	global map_width, map_height
-	map_width = len(mapList[0])
-	map_height = len(mapList)
-	n = Node(None,1,2)
-	list = canMove(n)
-	print(list)
 
 
 if(__name__ == '__main__'):
