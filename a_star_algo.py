@@ -18,7 +18,11 @@ def distance_to_parent(node):
 	if(node.parent == None):
 		return 0
 	else:
-		return math.sqrt((node.x-node.parent.x)**2 + (node.y-node.parent.y)**2)
+		if(math.sqrt((node.x-node.parent.x)**2 + (node.y-node.parent.y)**2) == 1):
+			return 1
+		else:
+			return 1.4
+		# return math.sqrt((node.x-node.parent.x)**2 + (node.y-node.parent.y)**2)
 
 def calculate_gn(node):
 	if(node.parent == None):
@@ -30,10 +34,13 @@ def calculate_hn(node):
 	global E
 	return math.sqrt((node.x-E.x)**2 + (node.y-E.y)**2)
 
+def calculate_fn(node):
+	return calculate_gn(node) + calculate_hn(node)
+
 def get_lowest_fn(list):
 	lowest_fn = 10000000
 	for i, node in enumerate(list):
-		fn = calculate_gn(node) + calculate_hn(node)
+		fn = calculate_fn(node)
 		if(fn < lowest_fn):
 			lowest_fn = fn
 			lowest_index = i
@@ -43,37 +50,54 @@ def canMove(node):
 	global map_width, map_height, mapList
 	list = []
 	if(node.x-1 >= 0 and node.y-1 >= 0 and mapList[node.y-1][node.x-1] != '#'):
-		list.append((Node(node, node.x-1, node.y-1), 1.4))
+		list.append(Node(node, node.x-1, node.y-1))
 	if(node.y-1 >= 0 and mapList[node.y-1][node.x] != '#'):
-		list.append((Node(node, node.x, node.y-1), 1))
+		list.append(Node(node, node.x, node.y-1))
 	if(node.x+1 < map_width and node.y-1 >= 0 and mapList[node.y-1][node.x+1] != '#'):
-		list.append((Node(node, node.x+1, node.y-1), 1.4))
+		list.append(Node(node, node.x+1, node.y-1))
 	if(node.x-1 >= 0 and mapList[node.y][node.x-1] != '#'):
-		list.append((Node(node, node.x-1, node.y), 1))
+		list.append(Node(node, node.x-1, node.y))
 	if(node.x+1 < map_width and mapList[node.y][node.x+1] != '#'):
-		list.append((Node(node, node.x+1, node.y), 1))
+		list.append(Node(node, node.x+1, node.y))
 	if(node.x-1 >= 0 and node.y+1 < map_height and mapList[node.y+1][node.x-1] != '#'):
-		list.append((Node(node, node.x-1, node.y+1), 1.4))
+		list.append(Node(node, node.x-1, node.y+1))
 	if(node.y+1 < map_height and mapList[node.y+1][node.x] != '#'):
-		list.append((Node(node, node.x, node.y+1), 1))
+		list.append(Node(node, node.x, node.y+1))
 	if(node.x+1 < map_width and node.y+1 < map_height and mapList[node.y+1][node.x+1] != '#'):
-		list.append((Node(node, node.x+1, node.y+1), 1.4))
+		list.append(Node(node, node.x+1, node.y+1))
 	return list
 
-def main():
+def ifNodesAreTheSame(node1, node2):
+	if(node1.parent != None and node2.parent != None):
+		return node1.x == node2.x and node1.y == node2.y and ifNodesAreTheSame(node1.parent, node2.parent)
+	elif((node1.parent != None and node2.parent == None) or (node1.parent == None and node2.parent != None)):
+		return False
+	else:
+		return node1.x == node2.x and node1.y == node2.y
+
+def ifNodeInList(node, list):
+	index = -1
+	for i, n in enumerate(list):
+		#if(ifNodesAreTheSame(node, n)):
+		if(node.x == n.x and node.y == n.y):
+			index = i
+			break
+	return index
+
+def algo():
 	# load the map
 	global mapList, S, E
 	lineList = []
 	
-	with open('map.txt', 'r', encoding='utf-8') as map:
+	with open('Map.txt', 'r', encoding='utf-8') as map:
 		for i, line in enumerate(map):
 			for j, char in enumerate(line):
 				if(char == '\n'):
 					continue
 				if(char == 'S'):
-					S = Node(None, i, j)
+					S = Node(None, j, i)
 				if(char == 'E'):
-					E = Node(None, i, j)
+					E = Node(None, j, i)
 				lineList.append(char)
 			mapList.append(lineList.copy())
 			lineList.clear()
@@ -81,7 +105,7 @@ def main():
 	global map_width, map_height
 	map_width = len(mapList[0])
 	map_height = len(mapList)
-
+	
 	openList = []
 	closedList = []
 	openList.append(S)
@@ -91,20 +115,34 @@ def main():
 		if(n.x == E.x and n.y == E.y):
 			return n
 		closedList.append(openList.pop(lowest_index))
-		for (nTemp, moveCost) in canMove(n):
-			gnTemp = calculate_gn(n) + moveCost
-			hnTemp = calculate_hn(nTemp)
-			fnTemp = gnTemp + hnTemp
+		
+		for nTemp in canMove(n):
+			fnTemp = calculate_fn(nTemp)
+			indexTemp_o = ifNodeInList(nTemp, openList)
+			if(indexTemp_o != -1 and fnTemp > calculate_fn(openList[indexTemp_o])):
+				continue
+			indexTemp_c = ifNodeInList(nTemp, closedList)
+			if(indexTemp_c != -1 and fnTemp > calculate_fn(closedList[indexTemp_c])):
+				continue			
+			if(indexTemp_o != -1):
+				openList.remove(openList[indexTemp_o])
+			if(indexTemp_c != -1):
+				closedList.remove(closedList[indexTemp_c])
+			openList.append(nTemp)
 
+	return None
 
-def test():
-	a = Node(None, 1, 1)
-	b = Node(a, 1, 2)
-	c = Node(a, 1, 2)
-	list = [a, b]
-	
+def main():
+	a = algo()
+	if(a != None):
+		print("there is a solution")
+		print((a.x, a.y))
+		while(a.parent != None):
+			a = a.parent
+			print((a.x, a.y))
+	else:
+		print("there is no solution")
 
 
 if(__name__ == '__main__'):
-	#main()
-	test()
+	main()
