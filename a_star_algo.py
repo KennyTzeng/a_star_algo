@@ -13,6 +13,27 @@ class Node:
 		self.parent = node
 		self.x = (int)(x)
 		self.y = (int)(y)
+
+def load_map():
+	global mapList, S, E, map_width, map_height
+	lineList = []
+	
+	with open('Map.txt', 'r', encoding='utf-8') as map:
+		for i, line in enumerate(map):
+			for j, char in enumerate(line):
+				if(char == '\n'):
+					continue
+				if(char == 'S'):
+					S = Node(None, j, i)
+				if(char == 'E'):
+					E = Node(None, j, i)
+				lineList.append(char)
+			mapList.append(lineList.copy())
+			lineList.clear()
+
+	map_width = len(mapList[0])
+	map_height = len(mapList)
+
 	
 def distance_to_parent(node):
 	if(node.parent == None):
@@ -84,27 +105,20 @@ def ifNodeInList(node, list):
 			break
 	return index
 
-def algo():
-	# load the map
-	global mapList, S, E
-	lineList = []
-	
-	with open('Map.txt', 'r', encoding='utf-8') as map:
-		for i, line in enumerate(map):
-			for j, char in enumerate(line):
-				if(char == '\n'):
-					continue
-				if(char == 'S'):
-					S = Node(None, j, i)
-				if(char == 'E'):
-					E = Node(None, j, i)
-				lineList.append(char)
-			mapList.append(lineList.copy())
-			lineList.clear()
+def print_path(node):
+	path = []
+	path.append((node.x, node.y))
+	while(node.parent != None):
+		node = node.parent
+		path.append((node.x, node.y))
+	for n in reversed(path):
+		print(n, end=" ")
+	print()
 
-	global map_width, map_height
-	map_width = len(mapList[0])
-	map_height = len(mapList)
+def algo():
+	global S
+
+	load_map()
 	
 	openList = []
 	closedList = []
@@ -133,13 +147,9 @@ def algo():
 	return None
 
 def main():
-	a = algo()
-	if(a != None):
-		print("there is a solution")
-		print((a.x, a.y))
-		while(a.parent != None):
-			a = a.parent
-			print((a.x, a.y))
+	result = algo()
+	if(result != None):
+		print_path(result)
 	else:
 		print("there is no solution")
 
